@@ -9,7 +9,7 @@ var thunk_queue = function(thunks, data, afterfn)
     }
     if(thunks.length > 0)
     {
-        for(var i = 0; i < thunks.length; i++) { thunks[i](done, data) }
+        for(var i = 0; i < thunks.length; i++) { thunks[i].fn(done, data) }
     }
     else
     {
@@ -31,13 +31,15 @@ var proxy_handler =
             key: target_property_name,
             new_val: value,
             old_val: target.data[target_property_name],
+            new_value: value,
+            old_value: target.data[target_property_name],
         }
         switch(true)
         {
             case typeof target.data[target_property_name] === "undefined":
                 change_data.event = "insert"
                 thunk_queue(
-                    target.event_handlers.before_insert,
+                    target.event_handlers.before_insert.concat(target.event_handlers.before_change),
                     change_data,
                     function(operation_permitted)
                     {
@@ -48,6 +50,10 @@ var proxy_handler =
                             {
                                 target.event_handlers.after_insert[i].fn(change_data)
                             }
+                            for(var i = 0; i < target.event_handlers.after_change.length; i++)
+                            {
+                                target.event_handlers.after_change[i].fn(change_data)
+                            }
                         }
                     }
                 )
@@ -55,7 +61,7 @@ var proxy_handler =
             case typeof value === "undefined":
                 change_data.event = "delete"
                 thunk_queue(
-                    target.event_handlers.before_delete,
+                    target.event_handlers.before_delete.concat(target.event_handlers.before_change),
                     change_data,
                     function(operation_permitted)
                     {
@@ -66,6 +72,10 @@ var proxy_handler =
                             {
                                 target.event_handlers.after_delete[i].fn(change_data)
                             }
+                            for(var i = 0; i < target.event_handlers.after_change.length; i++)
+                            {
+                                target.event_handlers.after_change[i].fn(change_data)
+                            }
                         }
                     }
                 )
@@ -73,7 +83,7 @@ var proxy_handler =
             default:
                 change_data.event = "update"
                 thunk_queue(
-                    target.event_handlers.before_update,
+                    target.event_handlers.before_update.concat(target.event_handlers.before_change),
                     change_data,
                     function(operation_permitted)
                     {
@@ -84,13 +94,17 @@ var proxy_handler =
                             {
                                 target.event_handlers.after_update[i].fn(change_data)
                             }
+                            for(var i = 0; i < target.event_handlers.after_change.length; i++)
+                            {
+                                target.event_handlers.after_change[i].fn(change_data)
+                            }
                         }
                     }
                 )
                 break
         }
     },
-    deleteProperty: function(target, property)
+    deleteProperty: function(target, target_property_name)
     {
         var operation_permitted = true
         var change_data = 
@@ -98,19 +112,25 @@ var proxy_handler =
             key: target_property_name,
             new_val: void(0),
             old_val: target.data[target_property_name],
+            new_value: void(0),
+            old_value: target.data[target_property_name],
         }
         change_data.event = "delete"
         thunk_queue(
-            target.event_handlers.before_delete,
+            target.event_handlers.before_delete.concat(target.event_handlers.before_change),
             change_data,
             function(operation_permitted)
             {
                 if(operation_permitted)
                 { 
-                    target.data[target_property_name] = value 
+                    target.data[target_property_name] = void(0) 
                     for(var i = 0; i < target.event_handlers.after_delete.length; i++)
                     {
                         target.event_handlers.after_delete[i].fn(change_data)
+                    }
+                    for(var i = 0; i < target.event_handlers.after_change.length; i++)
+                    {
+                        target.event_handlers.after_change[i].fn(change_data)
                     }
                 }
             }
@@ -208,7 +228,7 @@ data_interface.prototype =
     },
 }
 
-module.exports = function()
+module.exports = function(initial_data)
 {
     var interface
     var target = function() { return interface }
@@ -217,7 +237,14 @@ module.exports = function()
         after_insert: [], after_update: [], after_delete: [], after_change: [],
         before_insert: [], before_update: [], before_delete: [], before_change: [],
     }
-    target.data = {}
+    if(typeof initial_data == "undefined")
+    {
+        target.data = {}
+    }
+    else
+    {
+        target.data = initial_data
+    }
     interface = new data_interface(target)
     return new Proxy(target, proxy_handler)
 }
