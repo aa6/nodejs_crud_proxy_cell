@@ -1,6 +1,6 @@
 {
   "name": "crud-proxy-cell",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "CRUD proxy for a javascript objects.",
   "main": "index.js",
   "scripts": {
@@ -9,5 +9,11 @@
   "devDependencies": {
     "jasmine": "2.5.2",
     "jasmine-spec-reporter": "2.5.0"
-  }
+  },
+  "author": "aa6",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/aa6/nodejs_crud_proxy_cell/issues"
+  },
+  "homepage": "https://github.com/aa6/nodejs_crud_proxy_cell",
 }
