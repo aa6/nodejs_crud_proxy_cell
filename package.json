@@ -1,0 +1,13 @@
+{
+  "name": "crud-proxy-cell",
+  "version": "0.0.1",
+  "description": "CRUD proxy for a javascript objects.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node tests/support/jasmine-runner.js"
+  },
+  "devDependencies": {
+    "jasmine": "2.5.2",
+    "jasmine-spec-reporter": "2.5.0"
+  }
+}
