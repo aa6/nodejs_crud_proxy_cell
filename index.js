@@ -17,134 +17,7 @@ var thunk_queue = function(thunks, data, afterfn)
     }
 }
 
-var proxy_handler = 
-{
-    get: function(target, target_property_name, receiver)
-    {
-        return target.data[target_property_name]
-    },
-    set: function(target, target_property_name, value, receiver)
-    {
-        var operation_permitted = true
-        var change_data = 
-        {
-            key: target_property_name,
-            new_val: value,
-            old_val: target.data[target_property_name],
-            new_value: value,
-            old_value: target.data[target_property_name],
-        }
-        switch(true)
-        {
-            case typeof target.data[target_property_name] === "undefined":
-                change_data.event = "insert"
-                thunk_queue(
-                    target.event_handlers.before_insert.concat(target.event_handlers.before_change),
-                    change_data,
-                    function(operation_permitted)
-                    {
-                        if(operation_permitted)
-                        { 
-                            target.data[target_property_name] = value 
-                            for(var i = 0; i < target.event_handlers.after_insert.length; i++)
-                            {
-                                target.event_handlers.after_insert[i].fn(change_data)
-                            }
-                            for(var i = 0; i < target.event_handlers.after_change.length; i++)
-                            {
-                                target.event_handlers.after_change[i].fn(change_data)
-                            }
-                        }
-                    }
-                )
-                break
-            case typeof value === "undefined":
-                change_data.event = "delete"
-                thunk_queue(
-                    target.event_handlers.before_delete.concat(target.event_handlers.before_change),
-                    change_data,
-                    function(operation_permitted)
-                    {
-                        if(operation_permitted)
-                        { 
-                            target.data[target_property_name] = value 
-                            for(var i = 0; i < target.event_handlers.after_delete.length; i++)
-                            {
-                                target.event_handlers.after_delete[i].fn(change_data)
-                            }
-                            for(var i = 0; i < target.event_handlers.after_change.length; i++)
-                            {
-                                target.event_handlers.after_change[i].fn(change_data)
-                            }
-                        }
-                    }
-                )
-                break
-            default:
-                change_data.event = "update"
-                thunk_queue(
-                    target.event_handlers.before_update.concat(target.event_handlers.before_change),
-                    change_data,
-                    function(operation_permitted)
-                    {
-                        if(operation_permitted)
-                        { 
-                            target.data[target_property_name] = value 
-                            for(var i = 0; i < target.event_handlers.after_update.length; i++)
-                            {
-                                target.event_handlers.after_update[i].fn(change_data)
-                            }
-                            for(var i = 0; i < target.event_handlers.after_change.length; i++)
-                            {
-                                target.event_handlers.after_change[i].fn(change_data)
-                            }
-                        }
-                    }
-                )
-                break
-        }
-    },
-    deleteProperty: function(target, target_property_name)
-    {
-        var operation_permitted = true
-        var change_data = 
-        {
-            key: target_property_name,
-            new_val: void(0),
-            old_val: target.data[target_property_name],
-            new_value: void(0),
-            old_value: target.data[target_property_name],
-        }
-        change_data.event = "delete"
-        thunk_queue(
-            target.event_handlers.before_delete.concat(target.event_handlers.before_change),
-            change_data,
-            function(operation_permitted)
-            {
-                if(operation_permitted)
-                { 
-                    target.data[target_property_name] = void(0) 
-                    for(var i = 0; i < target.event_handlers.after_delete.length; i++)
-                    {
-                        target.event_handlers.after_delete[i].fn(change_data)
-                    }
-                    for(var i = 0; i < target.event_handlers.after_change.length; i++)
-                    {
-                        target.event_handlers.after_change[i].fn(change_data)
-                    }
-                }
-            }
-        )
-    },
-}
-
-var data_interface = function(target)
-{
-    this.event_handlers = target.event_handlers
-    this.handler_counter = 0
-}
-
-data_interface.prototype =
+var data_interface_prototype = 
 {
     after_insert: function(fn)
     {
@@ -232,19 +105,152 @@ module.exports = function(initial_data)
 {
     var interface
     var target = function() { return interface }
-    target.event_handlers = 
+    var event_handlers = 
     {
         after_insert: [], after_update: [], after_delete: [], after_change: [],
         before_insert: [], before_update: [], before_delete: [], before_change: [],
     }
-    if(typeof initial_data == "undefined")
+    if(typeof initial_data != "undefined")
     {
-        target.data = {}
+        for(var k in initial_data)
+        {
+            target[k] = initial_data[k]
+        }
     }
-    else
+
+    var data_interface = function(target)
     {
-        target.data = initial_data
+        this.event_handlers = event_handlers
+        this.handler_counter = 0
     }
+
+    data_interface.prototype = data_interface_prototype
+
+    var proxy_handler = 
+    {
+        ownKeys: function(target)
+        {
+            return Object.getOwnPropertyNames(target)
+        },
+        get: function(target, target_property_name, receiver)
+        {
+            return target[target_property_name]
+        },
+        set: function(target, target_property_name, value, receiver)
+        {
+            var operation_permitted = true
+            var change_data = 
+            {
+                key: target_property_name,
+                new_val: value,
+                old_val: target[target_property_name],
+                new_value: value,
+                old_value: target[target_property_name],
+            }
+            switch(true)
+            {
+                case typeof target[target_property_name] === "undefined":
+                    change_data.event = "insert"
+                    thunk_queue(
+                        event_handlers.before_insert.concat(event_handlers.before_change),
+                        change_data,
+                        function(operation_permitted)
+                        {
+                            if(operation_permitted)
+                            { 
+                                target[target_property_name] = value 
+                                for(var i = 0; i < event_handlers.after_insert.length; i++)
+                                {
+                                    event_handlers.after_insert[i].fn(change_data)
+                                }
+                                for(var i = 0; i < event_handlers.after_change.length; i++)
+                                {
+                                    event_handlers.after_change[i].fn(change_data)
+                                }
+                            }
+                        }
+                    )
+                    break
+                case typeof value === "undefined":
+                    change_data.event = "delete"
+                    thunk_queue(
+                        event_handlers.before_delete.concat(event_handlers.before_change),
+                        change_data,
+                        function(operation_permitted)
+                        {
+                            if(operation_permitted)
+                            { 
+                                target[target_property_name] = value 
+                                for(var i = 0; i < event_handlers.after_delete.length; i++)
+                                {
+                                    event_handlers.after_delete[i].fn(change_data)
+                                }
+                                for(var i = 0; i < event_handlers.after_change.length; i++)
+                                {
+                                    event_handlers.after_change[i].fn(change_data)
+                                }
+                            }
+                        }
+                    )
+                    break
+                default:
+                    change_data.event = "update"
+                    thunk_queue(
+                        event_handlers.before_update.concat(event_handlers.before_change),
+                        change_data,
+                        function(operation_permitted)
+                        {
+                            if(operation_permitted)
+                            { 
+                                target[target_property_name] = value 
+                                for(var i = 0; i < event_handlers.after_update.length; i++)
+                                {
+                                    event_handlers.after_update[i].fn(change_data)
+                                }
+                                for(var i = 0; i < event_handlers.after_change.length; i++)
+                                {
+                                    event_handlers.after_change[i].fn(change_data)
+                                }
+                            }
+                        }
+                    )
+                    break
+            }
+        },
+        deleteProperty: function(target, target_property_name)
+        {
+            var operation_permitted = true
+            var change_data = 
+            {
+                key: target_property_name,
+                new_val: void(0),
+                old_val: target[target_property_name],
+                new_value: void(0),
+                old_value: target[target_property_name],
+            }
+            change_data.event = "delete"
+            thunk_queue(
+                event_handlers.before_delete.concat(event_handlers.before_change),
+                change_data,
+                function(operation_permitted)
+                {
+                    if(operation_permitted)
+                    { 
+                        target[target_property_name] = void(0) 
+                        for(var i = 0; i < event_handlers.after_delete.length; i++)
+                        {
+                            event_handlers.after_delete[i].fn(change_data)
+                        }
+                        for(var i = 0; i < event_handlers.after_change.length; i++)
+                        {
+                            event_handlers.after_change[i].fn(change_data)
+                        }
+                    }
+                }
+            )
+        },
+    }
+
     interface = new data_interface(target)
     return new Proxy(target, proxy_handler)
 }
