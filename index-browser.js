@@ -104,6 +104,7 @@ var data_interface_prototype =
 module.exports = function(initial_data)
 {
     var interface
+    var fucking_wow
     var target = function() { return interface }
     var event_handlers = 
     {
@@ -143,16 +144,17 @@ module.exports = function(initial_data)
             }
             if(target_property_name == "toString" && !target.hasOwnProperty(target_property_name))
             {
-                return function(){ return "Browser is broken so you need to use .toObject to debug" }
+                return function(){ return "Firefox is broken so you need to use .toObject to debug" }
             }
             return target[target_property_name]
         },
         set: function(target, target_property_name, value, receiver)
         {
             var operation_permitted = true
-            var change_data = 
+            var event = 
             {
                 key: target_property_name,
+                target: receiver,
                 new_val: value,
                 old_val: target[target_property_name],
                 new_value: value,
@@ -161,10 +163,10 @@ module.exports = function(initial_data)
             switch(true)
             {
                 case typeof target[target_property_name] === "undefined":
-                    change_data.event = "insert"
+                    event.name = "insert"
                     thunk_queue(
                         event_handlers.before_insert.concat(event_handlers.before_change),
-                        change_data,
+                        event,
                         function(operation_permitted)
                         {
                             if(operation_permitted)
@@ -172,21 +174,21 @@ module.exports = function(initial_data)
                                 target[target_property_name] = value 
                                 for(var i = 0; i < event_handlers.after_insert.length; i++)
                                 {
-                                    event_handlers.after_insert[i].fn(change_data)
+                                    event_handlers.after_insert[i].fn(event)
                                 }
                                 for(var i = 0; i < event_handlers.after_change.length; i++)
                                 {
-                                    event_handlers.after_change[i].fn(change_data)
+                                    event_handlers.after_change[i].fn(event)
                                 }
                             }
                         }
                     )
                     break
                 case typeof value === "undefined":
-                    change_data.event = "delete"
+                    event.name = "delete"
                     thunk_queue(
                         event_handlers.before_delete.concat(event_handlers.before_change),
-                        change_data,
+                        event,
                         function(operation_permitted)
                         {
                             if(operation_permitted)
@@ -194,21 +196,21 @@ module.exports = function(initial_data)
                                 target[target_property_name] = value 
                                 for(var i = 0; i < event_handlers.after_delete.length; i++)
                                 {
-                                    event_handlers.after_delete[i].fn(change_data)
+                                    event_handlers.after_delete[i].fn(event)
                                 }
                                 for(var i = 0; i < event_handlers.after_change.length; i++)
                                 {
-                                    event_handlers.after_change[i].fn(change_data)
+                                    event_handlers.after_change[i].fn(event)
                                 }
                             }
                         }
                     )
                     break
                 default:
-                    change_data.event = "update"
+                    event.name = "update"
                     thunk_queue(
                         event_handlers.before_update.concat(event_handlers.before_change),
-                        change_data,
+                        event,
                         function(operation_permitted)
                         {
                             if(operation_permitted)
@@ -216,11 +218,11 @@ module.exports = function(initial_data)
                                 target[target_property_name] = value 
                                 for(var i = 0; i < event_handlers.after_update.length; i++)
                                 {
-                                    event_handlers.after_update[i].fn(change_data)
+                                    event_handlers.after_update[i].fn(event)
                                 }
                                 for(var i = 0; i < event_handlers.after_change.length; i++)
                                 {
-                                    event_handlers.after_change[i].fn(change_data)
+                                    event_handlers.after_change[i].fn(event)
                                 }
                             }
                         }
@@ -228,21 +230,22 @@ module.exports = function(initial_data)
                     break
             }
         },
-        deleteProperty: function(target, target_property_name)
+        deleteProperty: function(target, target_property_name, who_needs_a_fucking_recievers_these_days)
         {
             var operation_permitted = true
-            var change_data = 
+            var event = 
             {
                 key: target_property_name,
+                target: fucking_wow,
                 new_val: void(0),
                 old_val: target[target_property_name],
                 new_value: void(0),
                 old_value: target[target_property_name],
             }
-            change_data.event = "delete"
+            event.name = "delete"
             thunk_queue(
                 event_handlers.before_delete.concat(event_handlers.before_change),
-                change_data,
+                event,
                 function(operation_permitted)
                 {
                     if(operation_permitted)
@@ -250,11 +253,11 @@ module.exports = function(initial_data)
                         target[target_property_name] = void(0) 
                         for(var i = 0; i < event_handlers.after_delete.length; i++)
                         {
-                            event_handlers.after_delete[i].fn(change_data)
+                            event_handlers.after_delete[i].fn(event)
                         }
                         for(var i = 0; i < event_handlers.after_change.length; i++)
                         {
-                            event_handlers.after_change[i].fn(change_data)
+                            event_handlers.after_change[i].fn(event)
                         }
                     }
                 }
@@ -263,5 +266,6 @@ module.exports = function(initial_data)
     }
 
     interface = new data_interface(target)
-    return new Proxy(target, proxy_handler)
+    fucking_wow = new Proxy(target, proxy_handler)
+    return fucking_wow
 }
