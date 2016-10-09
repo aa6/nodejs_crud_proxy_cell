@@ -142,6 +142,7 @@ var data_interface_prototype =
 module.exports = function(initial_data)
 {
     var interface
+    var crud_proxy_cell
     var target = function() { return interface }
     var event_handlers = 
     {
@@ -186,6 +187,7 @@ module.exports = function(initial_data)
             var event = 
             {
                 key: target_property_name,
+                target: receiver,
                 new_val: value,
                 old_val: target[target_property_name],
                 new_value: value,
@@ -290,6 +292,7 @@ module.exports = function(initial_data)
             {
                 key: target_property_name,
                 name: "delete",
+                target: crud_proxy_cell,
                 new_val: void(0),
                 old_val: target[target_property_name],
                 new_value: void(0),
@@ -324,5 +327,6 @@ module.exports = function(initial_data)
     }
 
     interface = new data_interface(target)
-    return new Proxy(target, proxy_handler)
+    crud_proxy_cell = new Proxy(target, proxy_handler)
+    return crud_proxy_cell
 }
