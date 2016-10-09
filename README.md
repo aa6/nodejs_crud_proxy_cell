@@ -1,0 +1,1 @@
+# nodejs_crud_proxy_cell [![Travis CI badge](https://travis-ci.org/aa6/nodejs_crud_proxy_cell.svg?branch=master) Travis CI](https://travis-ci.org/aa6/nodejs_crud_proxy_cell)
