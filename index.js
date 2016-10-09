@@ -19,52 +19,84 @@ var thunk_queue = function(thunks, data, afterfn)
 
 var data_interface_prototype = 
 {
-    after_insert: function(fn)
+    after_insert: function(key, fn)
     {
+        if(typeof key == "function") 
+            { fn = key; key = ""; }
+        if(typeof this.event_handlers.after_insert[key] == "undefined")
+            { this.event_handlers.after_insert[key] = [] }
         this.handlers_counter++
-        this.event_handlers.after_insert.push({ hd: this.handlers_counter, fn: fn })
+        this.event_handlers.after_insert[key].push({ hd: this.handlers_counter, fn: fn })
         return this.handlers_counter
     },
-    after_update: function(fn)
+    after_update: function(key, fn)
     {
+        if(typeof key == "function") 
+            { fn = key; key = ""; }
+        if(typeof this.event_handlers.after_update[key] == "undefined")
+            { this.event_handlers.after_update[key] = [] }
         this.handlers_counter++
-        this.event_handlers.after_update.push({ hd: this.handlers_counter, fn: fn })
+        this.event_handlers.after_update[key].push({ hd: this.handlers_counter, fn: fn })
         return this.handlers_counter
     },
-    after_delete: function(fn)
+    after_delete: function(key, fn)
     {
+        if(typeof key == "function") 
+            { fn = key; key = ""; }
+        if(typeof this.event_handlers.after_delete[key] == "undefined")
+            { this.event_handlers.after_delete[key] = [] }
         this.handlers_counter++
-        this.event_handlers.after_delete.push({ hd: this.handlers_counter, fn: fn })
+        this.event_handlers.after_delete[key].push({ hd: this.handlers_counter, fn: fn })
         return this.handlers_counter
     },
-    after_change: function(fn)
+    after_change: function(key, fn)
     {
+        if(typeof key == "function") 
+            { fn = key; key = ""; }
+        if(typeof this.event_handlers.after_change[key] == "undefined")
+            { this.event_handlers.after_change[key] = [] }
         this.handlers_counter++
-        this.event_handlers.after_change.push({ hd: this.handlers_counter, fn: fn })
+        this.event_handlers.after_change[key].push({ hd: this.handlers_counter, fn: fn })
         return this.handlers_counter
     },
-    before_insert: function(fn)
+    before_insert: function(key, fn)
     {
+        if(typeof key == "function") 
+            { fn = key; key = ""; }
+        if(typeof this.event_handlers.before_insert[key] == "undefined")
+            { this.event_handlers.before_insert[key] = [] }
         this.handlers_counter++
-        this.event_handlers.before_insert.push({ hd: this.handlers_counter, fn: fn })
+        this.event_handlers.before_insert[key].push({ hd: this.handlers_counter, fn: fn })
         return this.handlers_counter
     },
-    before_update: function(fn)
+    before_update: function(key, fn)
     {
+        if(typeof key == "function") 
+            { fn = key; key = ""; }
+        if(typeof this.event_handlers.before_update[key] == "undefined")
+            { this.event_handlers.before_update[key] = [] }
         this.handlers_counter++
-        this.event_handlers.before_update.push({ hd: this.handlers_counter, fn: fn })
+        this.event_handlers.before_update[key].push({ hd: this.handlers_counter, fn: fn })
         return this.handlers_counter
     },
-    before_delete: function(fn)
+    before_delete: function(key, fn)
     {
+        if(typeof key == "function") 
+            { fn = key; key = ""; }
+        if(typeof this.event_handlers.before_delete[key] == "undefined")
+            { this.event_handlers.before_delete[key] = [] }
         this.handlers_counter++
-        this.event_handlers.before_delete.push({ hd: this.handlers_counter, fn: fn })
+        this.event_handlers.before_delete[key].push({ hd: this.handlers_counter, fn: fn })
         return this.handlers_counter
     },
-    before_change: function(fn)
+    before_change: function(key, fn)
     {
+        if(typeof key == "function") 
+            { fn = key; key = ""; }
+        if(typeof this.event_handlers.before_change[key] == "undefined")
+            { this.event_handlers.before_change[key] = [] }
         this.handlers_counter++
-        this.event_handlers.before_change.push({ hd: this.handlers_counter, fn: fn })
+        this.event_handlers.before_change[key].push({ hd: this.handlers_counter, fn: fn })
         return this.handlers_counter
     },
     off: function(fn_or_hd)
@@ -72,13 +104,16 @@ var data_interface_prototype =
         switch(typeof fn_or_hd)
         {
             case "function":
-                for(key in this.event_handlers)
+                for(type in this.event_handlers)
                 {
-                    for(var i = this.event_handlers[key].length; i < 0 ; i--)
+                    for(key in this.event_handlers[type])
                     {
-                        if(this.event_handlers[key][i].fn === fn_or_hd)
+                        for(var i = this.event_handlers[type][key].length; i < 0 ; i--)
                         {
-                            this.event_handlers[key].splice(i,1)
+                            if(this.event_handlers[type][key][i].fn === fn_or_hd)
+                            {
+                                this.event_handlers[type][key].splice(i,1)
+                            }
                         }
                     }
                 }
@@ -86,13 +121,16 @@ var data_interface_prototype =
             case "string":
                 fn_or_hd = parseInt(fn_or_hd)
             case "number":
-                for(key in this.event_handlers)
+                for(type in this.event_handlers[type])
                 {
-                    for(var i = this.event_handlers[key].length; i < 0 ; i--)
+                    for(key in this.event_handlers[type])
                     {
-                        if(this.event_handlers[key][i].hd === fn_or_hd)
+                        for(var i = this.event_handlers[type][key].length; i < 0 ; i--)
                         {
-                            this.event_handlers[key].splice(i,1)
+                            if(this.event_handlers[type][key][i].hd === fn_or_hd)
+                            {
+                                this.event_handlers[type][key].splice(i,1)
+                            }
                         }
                     }
                 }
@@ -107,8 +145,14 @@ module.exports = function(initial_data)
     var target = function() { return interface }
     var event_handlers = 
     {
-        after_insert: [], after_update: [], after_delete: [], after_change: [],
-        before_insert: [], before_update: [], before_delete: [], before_change: [],
+        after_insert: { "": [] }, 
+        after_update: { "": [] }, 
+        after_delete: { "": [] }, 
+        after_change: { "": [] },
+        before_insert: { "": [] }, 
+        before_update: { "": [] }, 
+        before_delete: { "": [] }, 
+        before_change: { "": [] },
     }
     if(typeof initial_data != "undefined")
     {
@@ -151,21 +195,27 @@ module.exports = function(initial_data)
             {
                 case typeof target[target_property_name] === "undefined":
                     event.name = "insert"
+                    var before_handlers = event_handlers.before_insert[""].concat(event_handlers.before_change[""])
+                    if(event_handlers.before_insert[target_property_name]) 
+                        { before_handlers = before_handlers.concat(event_handlers.before_insert[target_property_name]) }
+                    if(event_handlers.before_change[target_property_name]) 
+                        { before_handlers = before_handlers.concat(event_handlers.before_change[target_property_name]) }
+                    var after_handlers = event_handlers.after_insert[""].concat(event_handlers.after_change[""])
+                    if(event_handlers.after_insert[target_property_name]) 
+                        { after_handlers = after_handlers.concat(event_handlers.after_insert[target_property_name]) }
+                    if(event_handlers.after_change[target_property_name]) 
+                        { after_handlers = after_handlers.concat(event_handlers.after_change[target_property_name]) }
                     thunk_queue(
-                        event_handlers.before_insert.concat(event_handlers.before_change),
+                        before_handlers,
                         event,
                         function(operation_permitted)
                         {
                             if(operation_permitted)
                             { 
                                 target[target_property_name] = value 
-                                for(var i = 0; i < event_handlers.after_insert.length; i++)
+                                for(var i = 0; i < after_handlers.length; i++)
                                 {
-                                    event_handlers.after_insert[i].fn(event)
-                                }
-                                for(var i = 0; i < event_handlers.after_change.length; i++)
-                                {
-                                    event_handlers.after_change[i].fn(event)
+                                    after_handlers[i].fn(event)
                                 }
                             }
                         }
@@ -173,21 +223,27 @@ module.exports = function(initial_data)
                     break
                 case typeof value === "undefined":
                     event.name = "delete"
+                    var before_handlers = event_handlers.before_delete[""].concat(event_handlers.before_change[""])
+                    if(event_handlers.before_delete[target_property_name]) 
+                        { before_handlers = before_handlers.concat(event_handlers.before_delete[target_property_name]) }
+                    if(event_handlers.before_change[target_property_name]) 
+                        { before_handlers = before_handlers.concat(event_handlers.before_change[target_property_name]) }
+                    var after_handlers = event_handlers.after_delete[""].concat(event_handlers.after_change[""])
+                    if(event_handlers.after_delete[target_property_name]) 
+                        { after_handlers = after_handlers.concat(event_handlers.after_delete[target_property_name]) }
+                    if(event_handlers.after_change[target_property_name]) 
+                        { after_handlers = after_handlers.concat(event_handlers.after_change[target_property_name]) }
                     thunk_queue(
-                        event_handlers.before_delete.concat(event_handlers.before_change),
+                        before_handlers,
                         event,
                         function(operation_permitted)
                         {
                             if(operation_permitted)
                             { 
                                 target[target_property_name] = value 
-                                for(var i = 0; i < event_handlers.after_delete.length; i++)
+                                for(var i = 0; i < after_handlers.length; i++)
                                 {
-                                    event_handlers.after_delete[i].fn(event)
-                                }
-                                for(var i = 0; i < event_handlers.after_change.length; i++)
-                                {
-                                    event_handlers.after_change[i].fn(event)
+                                    after_handlers[i].fn(event)
                                 }
                             }
                         }
@@ -195,21 +251,31 @@ module.exports = function(initial_data)
                     break
                 default:
                     event.name = "update"
+                    var before_handlers = event_handlers.before_update[""].concat(event_handlers.before_change[""])
+                    if(event_handlers.before_update[target_property_name]) 
+                        { before_handlers = before_handlers.concat(event_handlers.before_update[target_property_name]) }
+                    if(event_handlers.before_change[target_property_name]) 
+                        { before_handlers = before_handlers.concat(event_handlers.before_change[target_property_name]) }
+                    var after_handlers = event_handlers.after_update[""].concat(event_handlers.after_change[""])
+                    if(event_handlers.after_update[target_property_name]) 
+                        { after_handlers = after_handlers.concat(event_handlers.after_update[target_property_name]) }
+                    if(event_handlers.after_change[target_property_name]) 
+                        { after_handlers = after_handlers.concat(event_handlers.after_change[target_property_name]) }
                     thunk_queue(
-                        event_handlers.before_update.concat(event_handlers.before_change),
+                        before_handlers,
                         event,
                         function(operation_permitted)
                         {
                             if(operation_permitted)
                             { 
                                 target[target_property_name] = value 
-                                for(var i = 0; i < event_handlers.after_update.length; i++)
-                                {
-                                    event_handlers.after_update[i].fn(event)
-                                }
-                                for(var i = 0; i < event_handlers.after_change.length; i++)
-                                {
-                                    event_handlers.after_change[i].fn(event)
+                                if(operation_permitted)
+                                { 
+                                    target[target_property_name] = value 
+                                    for(var i = 0; i < after_handlers.length; i++)
+                                    {
+                                        after_handlers[i].fn(event)
+                                    }
                                 }
                             }
                         }
@@ -229,21 +295,27 @@ module.exports = function(initial_data)
                 new_value: void(0),
                 old_value: target[target_property_name],
             }
+            var before_handlers = event_handlers.before_delete[""].concat(event_handlers.before_change[""])
+            if(event_handlers.before_delete[target_property_name]) 
+                { before_handlers = before_handlers.concat(event_handlers.before_delete[target_property_name]) }
+            if(event_handlers.before_change[target_property_name]) 
+                { before_handlers = before_handlers.concat(event_handlers.before_change[target_property_name]) }
+            var after_handlers = event_handlers.after_delete[""].concat(event_handlers.after_change[""])
+            if(event_handlers.after_delete[target_property_name]) 
+                { after_handlers = after_handlers.concat(event_handlers.after_delete[target_property_name]) }
+            if(event_handlers.after_change[target_property_name]) 
+                { after_handlers = after_handlers.concat(event_handlers.after_change[target_property_name]) }
             thunk_queue(
-                event_handlers.before_delete.concat(event_handlers.before_change),
+                before_handlers,
                 event,
                 function(operation_permitted)
                 {
                     if(operation_permitted)
                     { 
-                        target[target_property_name] = void(0) 
-                        for(var i = 0; i < event_handlers.after_delete.length; i++)
+                        delete target[target_property_name]
+                        for(var i = 0; i < after_handlers.length; i++)
                         {
-                            event_handlers.after_delete[i].fn(event)
-                        }
-                        for(var i = 0; i < event_handlers.after_change.length; i++)
-                        {
-                            event_handlers.after_change[i].fn(event)
+                            after_handlers[i].fn(event)
                         }
                     }
                 }
