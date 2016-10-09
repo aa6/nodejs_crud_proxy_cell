@@ -6,11 +6,11 @@ describe("Changes prevention",function()
     it("Should work for before_insert", function()
     {
         var cpc = new crudproxycell()
-        cpc().before_insert(function(done, data)
+        cpc().before_insert(function(done, event)
         {
             expect(typeof done).toBe("function")
-            expect(data.event).toBe("insert")
-            if(data.new_value == "preventme")
+            expect(event.name).toBe("insert")
+            if(event.new_value == "preventme")
             {
                 done(false)
             }
@@ -28,11 +28,11 @@ describe("Changes prevention",function()
     it("Should work for before_delete", function()
     {
         var cpc = new crudproxycell()
-        cpc().before_delete(function(done, data)
+        cpc().before_delete(function(done, event)
         {
             expect(typeof done).toBe("function")
-            expect(data.event).toBe("delete")
-            if(data.key == "preventme")
+            expect(event.name).toBe("delete")
+            if(event.key == "preventme")
             {
                 done(false)
             }
@@ -54,11 +54,11 @@ describe("Changes prevention",function()
     it("Should work for before_update",function()
     {
         var cpc = new crudproxycell({ preventme: 12, preventmenot: 24})
-        cpc().before_update(function(done, data)
+        cpc().before_update(function(done, event)
         {
             expect(typeof done).toBe("function")
-            expect(data.event).toBe("update")
-            if(data.key == "preventme")
+            expect(event.name).toBe("update")
+            if(event.key == "preventme")
             {
                 done(false)
             }
@@ -78,14 +78,14 @@ describe("Changes prevention",function()
     it("Should work for before_change",function()
     {
         var cpc = new crudproxycell({ updateme: 58, deleteme: 216, updatemenot: 158, deletemenot: 36  })
-        cpc().before_change(function(done, data)
+        cpc().before_change(function(done, event)
         {
             expect(typeof done).toBe("function")
             switch(true)
             {
-                case data.event == "insert" && data.key == "insertmenot":
-                case data.event == "delete" && data.key == "deletemenot":
-                case data.event == "update" && data.key == "updatemenot":
+                case event.name == "insert" && event.key == "insertmenot":
+                case event.name == "delete" && event.key == "deletemenot":
+                case event.name == "update" && event.key == "updatemenot":
                     done(false)
                     break
                 default:
