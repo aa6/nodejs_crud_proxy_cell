@@ -185,12 +185,6 @@ module.exports = function(initial_data)
         },
         get: function(target, target_property_name, receiver)
         {
-            if(target_property_name == "toObject" && !target.hasOwnProperty(target_property_name))
-            {
-                var obj = {}
-                for(var key in target) { obj[key] = target[key] }
-                return function(){ return Object(obj) }
-            }
             if(target_property_name == "toString" && !target.hasOwnProperty(target_property_name))
             {
                 return function(){ return "Browser is broken so you need to use .toObject to debug" }
