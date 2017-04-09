@@ -211,7 +211,14 @@ var crudproxycell = function(initial_data)
             var result = {}
             for(key in this._data)
             {
-                result[key] = this._data[key]
+                if(this._data[key] instanceof crudproxycell)
+                {
+                    result[key] = this._data[key].toObject()
+                }
+                else
+                {
+                    result[key] = this._data[key]
+                }
             }
             return result
         },
