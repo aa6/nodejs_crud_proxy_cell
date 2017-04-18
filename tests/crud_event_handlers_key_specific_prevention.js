@@ -76,28 +76,28 @@ describe("CRUD events",function()
         expect(events_handled).toEqual(["update"])
     })
 
-    // it("should prevent delete",function()
-    // {
-    //     var cell = new crudproxycell({
-    //         a:"aaa",
-    //         b:"bbb",
-    //     })
-    //     var events_handled = []
-    //     cell.before_delete(function(done,event)
-    //     {
-    //         expect(event.target).toBe(cell)
-    //         events_handled.push(event.name)
-    //         done(false)
-    //     })
-    //     cell.$a = "AAA"
-    //     expect(cell.$.a).toBe("AAA")
-    //     cell.$c = "CCC"
-    //     expect(cell.$.c).toBe("CCC")
-    //     delete cell.$b
-    //     expect(cell.$.b).toBe("bbb")
-    //     cell.$a = void(0)
-    //     expect(cell.$.a).toBe("AAA")
+    it("should prevent delete",function()
+    {
+        var cell = new crudproxycell({
+            a:"aaa",
+            b:"bbb",
+        })
+        var events_handled = []
+        cell.on_delete(function(event)
+        {
+            expect(event.target).toBe(cell)
+            events_handled.push(event.name)
+            return false
+        })
+        cell.$a = "AAA"
+        expect(cell.$.a).toBe("AAA")
+        cell.$c = "CCC"
+        expect(cell.$.c).toBe("CCC")
+        delete cell.$b
+        expect(cell.$.b).toBe("bbb")
+        cell.$a = void(0)
+        expect(cell.$.a).toBe("AAA")
         
-    //     expect(events_handled).toEqual(["delete","delete"])
-    // })
+        expect(events_handled).toEqual(["delete","delete"])
+    })
 })

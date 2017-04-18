@@ -62,19 +62,6 @@ var proxy_handler =
         }
     },
 }
-// Thunk is a function that encapsulates asynchronous code inside.
-var thunk_queue = function(array_of_thunks, data, final_fn)
-{
-    var pending_count = array_of_thunks.length
-    var done = function(thunk_result)
-    {
-        if(--pending_count == 0) { final_fn() }
-    }
-    if(array_of_thunks.length > 0)
-        { for(var i = 0; i < array_of_thunks.length; i++) { array_of_thunks[i].fn(done, data) } }
-    else
-        { final_fn() }
-}
 var is_valid_numeric_key = function(num) { return /^[+-]?0|[1-9]\d*$/.test(num) }
 var crudproxycell = function(initial_data)
 {
@@ -350,15 +337,15 @@ var crudproxycell = function(initial_data)
                             target._max_numeric_key = property_name_parsed
                         }
                     }
-                    target._data[property_name] = value
+                    target._data[property_name] = event.new_value
                 }
             }
             else
             {
-                event.name = (typeof value === "undefined") ?"delete" : "update"
+                event.name = (typeof value === "undefined") ? "delete" : "update"
                 if(target._trigger(event).allowed === true)
                 {
-                    target._data[property_name] = value
+                    target._data[property_name] = event.new_value
                 }
             }
         },
