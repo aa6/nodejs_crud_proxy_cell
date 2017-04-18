@@ -65,19 +65,17 @@ var proxy_handler =
 // Thunk is a function that encapsulates asynchronous code inside.
 var thunk_queue = function(array_of_thunks, data, final_fn)
 {
-    var final_result = true
     var pending_count = array_of_thunks.length
     var done = function(thunk_result)
     {
-        final_result = final_result && thunk_result
-        if(--pending_count == 0) { final_fn(final_result) }
+        if(--pending_count == 0) { final_fn() }
     }
     if(array_of_thunks.length > 0)
         { for(var i = 0; i < array_of_thunks.length; i++) { array_of_thunks[i].fn(done, data) } }
     else
-        { final_fn(final_result) }
+        { final_fn() }
 }
-var is_valid_numeric_key = function(num) { return /^(0|[1-9]\d*)$/.test(num) }
+var is_valid_numeric_key = function(num) { return /^[+-]?0|[1-9]\d*$/.test(num) }
 var crudproxycell = function(initial_data)
 {
     var crudproxycell_instance
@@ -88,85 +86,161 @@ var crudproxycell = function(initial_data)
         {
             target.$[++target._max_numeric_key] = item
         },
-        on_insert: function(key, fn)
+        on_insert: function()
         {
-            if(typeof key == "function") 
-                { fn = key; key = ""; }
-            if(typeof target._event_handlers.after_insert[key] == "undefined")
-                { target._event_handlers.after_insert[key] = [] }
-            target._handlers_counter++
-            target._event_handlers.after_insert[key].push({ hd: target._handlers_counter, fn: fn })
+            var key, priority, fn
+            switch(arguments.length)
+            {
+                case 1:
+                    fn = arguments[0]
+                    break
+                case 2:
+                    key = arguments[0]
+                    fn = arguments[1]
+                    break
+                default:
+                    priority = arguments[1]
+                    key = arguments[0]
+                    fn = arguments[2]
+            }
+            target._on("insert", key, priority, fn, ++target._handlers_counter)
             return target._handlers_counter
         },
-        on_update: function(key, fn)
+        on_update: function()
         {
-            if(typeof key == "function") 
-                { fn = key; key = ""; }
-            if(typeof target._event_handlers.after_update[key] == "undefined")
-                { target._event_handlers.after_update[key] = [] }
-            target._handlers_counter++
-            target._event_handlers.after_update[key].push({ hd: target._handlers_counter, fn: fn })
+            var key, priority, fn
+            switch(arguments.length)
+            {
+                case 1:
+                    fn = arguments[0]
+                    break
+                case 2:
+                    key = arguments[0]
+                    fn = arguments[1]
+                    break
+                default:
+                    priority = arguments[1]
+                    key = arguments[0]
+                    fn = arguments[2]
+            }
+            target._on("update", key, priority, fn, ++target._handlers_counter)
             return target._handlers_counter
         },
-        on_delete: function(key, fn)
+        on_delete: function()
         {
-            if(typeof key == "function") 
-                { fn = key; key = ""; }
-            if(typeof target._event_handlers.after_delete[key] == "undefined")
-                { target._event_handlers.after_delete[key] = [] }
-            target._handlers_counter++
-            target._event_handlers.after_delete[key].push({ hd: target._handlers_counter, fn: fn })
+            var key, priority, fn
+            switch(arguments.length)
+            {
+                case 1:
+                    fn = arguments[0]
+                    break
+                case 2:
+                    key = arguments[0]
+                    fn = arguments[1]
+                    break
+                default:
+                    priority = arguments[1]
+                    key = arguments[0]
+                    fn = arguments[2]
+            }
+            target._on("delete", key, priority, fn, ++target._handlers_counter)
             return target._handlers_counter
         },
-        on_change: function(key, fn)
+        on_change: function()
         {
-            if(typeof key == "function") 
-                { fn = key; key = ""; }
-            if(typeof target._event_handlers.after_change[key] == "undefined")
-                { target._event_handlers.after_change[key] = [] }
-            target._handlers_counter++
-            target._event_handlers.after_change[key].push({ hd: target._handlers_counter, fn: fn })
-            return target._handlers_counter
+            var key, priority, fn, handler_descriptor
+            switch(arguments.length)
+            {
+                case 1:
+                    fn = arguments[0]
+                    break
+                case 2:
+                    key = arguments[0]
+                    fn = arguments[1]
+                    break
+                default:
+                    priority = arguments[1]
+                    key = arguments[0]
+                    fn = arguments[2]
+            }
+            handler_descriptor = ++target._handlers_counter
+            target._on("insert", key, priority, fn, handler_descriptor)
+            target._on("update", key, priority, fn, handler_descriptor)
+            target._on("delete", key, priority, fn, handler_descriptor)
+            return handler_descriptor
         },
-        before_insert: function(key, fn)
+        _trigger: function(event)
         {
-            if(typeof key == "function") 
-                { fn = key; key = ""; }
-            if(typeof target._event_handlers.before_insert[key] == "undefined")
-                { target._event_handlers.before_insert[key] = [] }
-            target._handlers_counter++
-            target._event_handlers.before_insert[key].push({ hd: target._handlers_counter, fn: fn })
-            return target._handlers_counter
+            var priority, fns
+            var order = [].concat(target._event_handlers[event.name].common.order)
+            if(target._event_handlers[event.name].key_specific[event.key])
+            {
+                order = order.concat(target._event_handlers[event.name].key_specific[event.key].order)
+            }
+            order = order.sort().filter(function(el,key){ return order.indexOf(el) === key }) // unique and sorted
+            result = { allowed: true }
+            for(order_index in order)
+            {
+                priority = order[order_index]
+                fns = []
+                if(target._event_handlers[event.name].common.fns[priority])
+                {
+                    fns = fns.concat(target._event_handlers[event.name].common.fns[priority])
+                }
+                if(target._event_handlers[event.name].key_specific[event.key]
+                && target._event_handlers[event.name].key_specific[event.key].fns[priority])
+                {
+                    fns = fns.concat(target._event_handlers[event.name].key_specific[event.key].fns[priority])
+                }
+                for(fn_index in fns)
+                {
+                    result.allowed = (fns[fn_index].fn(event) != false)
+                    if(!result.allowed)
+                    {
+                        return result
+                    }
+                }
+            }
+            return result
         },
-        before_update: function(key, fn)
+        _on: function(event_name, property_name, priority, handler, handler_descriptor)
         {
-            if(typeof key == "function") 
-                { fn = key; key = ""; }
-            if(typeof target._event_handlers.before_update[key] == "undefined")
-                { target._event_handlers.before_update[key] = [] }
-            target._handlers_counter++
-            target._event_handlers.before_update[key].push({ hd: target._handlers_counter, fn: fn })
-            return target._handlers_counter
-        },
-        before_delete: function(key, fn)
-        {
-            if(typeof key == "function") 
-                { fn = key; key = ""; }
-            if(typeof target._event_handlers.before_delete[key] == "undefined")
-                { target._event_handlers.before_delete[key] = [] }
-            target._handlers_counter++
-            target._event_handlers.before_delete[key].push({ hd: target._handlers_counter, fn: fn })
-            return target._handlers_counter
-        },
-        before_change: function(key, fn)
-        {
-            if(typeof key == "function") 
-                { fn = key; key = ""; }
-            if(typeof target._event_handlers.before_change[key] == "undefined")
-                { target._event_handlers.before_change[key] = [] }
-            target._handlers_counter++
-            target._event_handlers.before_change[key].push({ hd: target._handlers_counter, fn: fn })
-            return target._handlers_counter
+            if(typeof priority != "number")
+            {
+                priority = isNaN(priority = parseInt(priority)) ? 0 : priority
+            }
+            if(property_name == null)
+            {
+                if(target._event_handlers[event_name].common.order.indexOf(priority) == -1)
+                {
+                    target._event_handlers[event_name].common.order.push(priority)
+                    target._event_handlers[event_name].common.order.sort()
+                    target._event_handlers[event_name].common.fns[priority] = []
+                }
+                target._event_handlers[event_name].common.fns[priority].push(
+                { 
+                    hd: handler_descriptor, 
+                    fn: handler 
+                })
+            }
+            else
+            {
+                if(target._event_handlers[event_name].key_specific[property_name] == null)
+                {
+                    target._event_handlers[event_name].key_specific[property_name] = { order: [], fns: {} }
+                }
+                if(target._event_handlers[event_name].key_specific[property_name].order.indexOf(priority) == -1)
+                {
+                    target._event_handlers[event_name].key_specific[property_name].order.push(priority)
+                    target._event_handlers[event_name].key_specific[property_name].order.sort()
+                    target._event_handlers[event_name].key_specific[property_name].fns[priority] = []
+                }
+                target._event_handlers[event_name].key_specific[property_name].fns[priority].push(
+                { 
+                    hd: handler_descriptor, 
+                    fn: handler 
+                })
+            }
         },
         off: function(fn_or_hd)
         {
@@ -227,14 +301,10 @@ var crudproxycell = function(initial_data)
         _handlers_counter: 0,
         _event_handlers:
         {
-            after_insert: { "": [] }, 
-            after_update: { "": [] }, 
-            after_delete: { "": [] }, 
-            after_change: { "": [] },
-            before_insert: { "": [] }, 
-            before_update: { "": [] }, 
-            before_delete: { "": [] }, 
-            before_change: { "": [] },
+            insert: { common: { order: [], fns: {} }, key_specific: {} },
+            update: { common: { order: [], fns: {} }, key_specific: {} },
+            delete: { common: { order: [], fns: {} }, key_specific: {} },
+            change: { common: { order: [], fns: {} }, key_specific: {} },
         },
     }
     var dollar_proxy = 
@@ -263,113 +333,33 @@ var crudproxycell = function(initial_data)
             {
                 key: property_name,
                 target: crudproxycell_instance,
-                new_val: value,
-                old_val: target._data[property_name],
                 new_value: value,
                 old_value: target._data[property_name],
-                newval: value,
-                oldval: target._data[property_name],
-                newvalue: value,
-                oldvalue: target._data[property_name],
             }
             // Setting (changing) a property generates events.
-            switch(true) 
+            if(typeof target._data[property_name] === "undefined")
             {
-                case typeof target._data[property_name] === "undefined":
-                    event.name = "insert"
-                    var before_handlers = target._event_handlers.before_insert[""].concat(target._event_handlers.before_change[""])
-                    if(target._event_handlers.before_insert[property_name]) 
-                        { before_handlers = before_handlers.concat(target._event_handlers.before_insert[property_name]) }
-                    if(target._event_handlers.before_change[property_name]) 
-                        { before_handlers = before_handlers.concat(target._event_handlers.before_change[property_name]) }
-                    var after_handlers = target._event_handlers.after_insert[""].concat(target._event_handlers.after_change[""])
-                    if(target._event_handlers.after_insert[property_name]) 
-                        { after_handlers = after_handlers.concat(target._event_handlers.after_insert[property_name]) }
-                    if(target._event_handlers.after_change[property_name]) 
-                        { after_handlers = after_handlers.concat(target._event_handlers.after_change[property_name]) }
-                    thunk_queue(
-                        before_handlers,
-                        event,
-                        function(operation_permitted)
+                event.name = "insert"
+                if(target._trigger(event).allowed === true)
+                {
+                    if(is_valid_numeric_key(property_name))
+                    {
+                        var property_name_parsed = parseInt(property_name)
+                        if(property_name_parsed > target._max_numeric_key)
                         {
-                            if(operation_permitted)
-                            {
-                                if(is_valid_numeric_key(property_name))
-                                {
-                                    var property_name_parsed = parseInt(property_name)
-                                    if(property_name_parsed > target._max_numeric_key)
-                                    {
-                                        target._max_numeric_key = property_name_parsed
-                                    }
-                                }
-                                target._data[property_name] = value
-                                for(var i = 0; i < after_handlers.length; i++)
-                                {
-                                    after_handlers[i].fn(event)
-                                }
-                            }
+                            target._max_numeric_key = property_name_parsed
                         }
-                    )
-                    break
-                case typeof value === "undefined":
-                    event.name = "delete"
-                    var before_handlers = target._event_handlers.before_delete[""].concat(target._event_handlers.before_change[""])
-                    if(target._event_handlers.before_delete[property_name]) 
-                        { before_handlers = before_handlers.concat(target._event_handlers.before_delete[property_name]) }
-                    if(target._event_handlers.before_change[property_name]) 
-                        { before_handlers = before_handlers.concat(target._event_handlers.before_change[property_name]) }
-                    var after_handlers = target._event_handlers.after_delete[""].concat(target._event_handlers.after_change[""])
-                    if(target._event_handlers.after_delete[property_name]) 
-                        { after_handlers = after_handlers.concat(target._event_handlers.after_delete[property_name]) }
-                    if(target._event_handlers.after_change[property_name]) 
-                        { after_handlers = after_handlers.concat(target._event_handlers.after_change[property_name]) }
-                    thunk_queue(
-                        before_handlers,
-                        event,
-                        function(operation_permitted)
-                        {
-                            if(operation_permitted)
-                            { 
-                                target._data[property_name] = value
-                                for(var i = 0; i < after_handlers.length; i++)
-                                {
-                                    after_handlers[i].fn(event)
-                                }
-                            }
-                        }
-                    )
-                    break
-                default:
-                    event.name = "update"
-                    var before_handlers = target._event_handlers.before_update[""].concat(target._event_handlers.before_change[""])
-                    if(target._event_handlers.before_update[property_name]) 
-                        { before_handlers = before_handlers.concat(target._event_handlers.before_update[property_name]) }
-                    if(target._event_handlers.before_change[property_name]) 
-                        { before_handlers = before_handlers.concat(target._event_handlers.before_change[property_name]) }
-                    var after_handlers = target._event_handlers.after_update[""].concat(target._event_handlers.after_change[""])
-                    if(target._event_handlers.after_update[property_name]) 
-                        { after_handlers = after_handlers.concat(target._event_handlers.after_update[property_name]) }
-                    if(target._event_handlers.after_change[property_name]) 
-                        { after_handlers = after_handlers.concat(target._event_handlers.after_change[property_name]) }
-                    thunk_queue(
-                        before_handlers,
-                        event,
-                        function(operation_permitted)
-                        {
-                            if(operation_permitted)
-                            { 
-                                if(operation_permitted)
-                                { 
-                                    target._data[property_name] = value
-                                    for(var i = 0; i < after_handlers.length; i++)
-                                    {
-                                        after_handlers[i].fn(event)
-                                    }
-                                }
-                            }
-                        }
-                    )
-                    break
+                    }
+                    target._data[property_name] = value
+                }
+            }
+            else
+            {
+                event.name = (typeof value === "undefined") ?"delete" : "update"
+                if(target._trigger(event).allowed === true)
+                {
+                    target._data[property_name] = value
+                }
             }
         },
         deleteProperty: function(target, property_name)
@@ -380,36 +370,13 @@ var crudproxycell = function(initial_data)
                 key: property_name,
                 name: "delete",
                 target: crudproxycell_instance,
-                new_val: void(0),
-                old_val: target._data[property_name],
                 new_value: void(0),
                 old_value: target._data[property_name],
             }
-            var before_handlers = target._event_handlers.before_delete[""].concat(target._event_handlers.before_change[""])
-            if(target._event_handlers.before_delete[property_name]) 
-                { before_handlers = before_handlers.concat(target._event_handlers.before_delete[property_name]) }
-            if(target._event_handlers.before_change[property_name]) 
-                { before_handlers = before_handlers.concat(target._event_handlers.before_change[property_name]) }
-            var after_handlers = target._event_handlers.after_delete[""].concat(target._event_handlers.after_change[""])
-            if(target._event_handlers.after_delete[property_name]) 
-                { after_handlers = after_handlers.concat(target._event_handlers.after_delete[property_name]) }
-            if(target._event_handlers.after_change[property_name]) 
-                { after_handlers = after_handlers.concat(target._event_handlers.after_change[property_name]) }
-            thunk_queue(
-                before_handlers,
-                event,
-                function(operation_permitted)
-                {
-                    if(operation_permitted)
-                    { 
-                        delete target._data[property_name]
-                        for(var i = 0; i < after_handlers.length; i++)
-                        {
-                            after_handlers[i].fn(event)
-                        }
-                    }
-                }
-            )
+            if(target._trigger(event).allowed === true)
+            {
+                delete target._data[property_name]
+            }
         },
     }
     target.$ = new Proxy(target, dollar_proxy)

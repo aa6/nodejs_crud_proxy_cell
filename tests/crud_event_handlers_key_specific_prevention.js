@@ -8,11 +8,11 @@ describe("CRUD events",function()
             b:"bbb",
         })
         var events_handled = []
-        cell.before_change("a",function(done,event)
+        cell.on_change("a",function(event)
         {
             expect(event.target).toBe(cell)
             events_handled.push(event.name)
-            done(false)
+            return false
         })
         cell.$a = "AAA"
         expect(cell.$.a).toBe("aaa")
@@ -33,11 +33,11 @@ describe("CRUD events",function()
             b:"bbb",
         })
         var events_handled = []
-        cell.before_insert("c",function(done,event)
+        cell.on_insert("c",function(event)
         {
             expect(event.target).toBe(cell)
             events_handled.push(event.name)
-            done(false)
+            return false
         })
         cell.$a = "AAA"
         expect(cell.$.a).toBe("AAA")
@@ -58,11 +58,11 @@ describe("CRUD events",function()
             b:"bbb",
         })
         var events_handled = []
-        cell.before_update("a",function(done,event)
+        cell.on_update("a",function(event)
         {
             expect(event.target).toBe(cell)
             events_handled.push(event.name)
-            done(false)
+            return false
         })
         cell.$a = "AAA"
         expect(cell.$.a).toBe("aaa") // Unchanged!

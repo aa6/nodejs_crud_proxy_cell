@@ -1,6 +1,6 @@
 {
   "name": "crud-proxy-cell",
-  "version": "1.1.2",
+  "version": "3.0.0",
   "description": "CRUD proxy for a javascript objects.",
   "main": "index.js",
   "scripts": {
