@@ -76,19 +76,19 @@ var crudproxycell = function(initial_data)
         on_insert: function()
         {
             var key, priority, fn
-            switch(arguments.length)
+            switch(typeof arguments[0])
             {
-                case 1:
+                case "function":
                     fn = arguments[0]
                     break
-                case 2:
-                    key = arguments[0]
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
                     fn = arguments[1]
                     break
                 default:
-                    priority = arguments[1]
                     key = arguments[0]
-                    fn = arguments[2]
+                    fn = arguments[1]
             }
             target._on("insert", key, priority, fn, ++target._handlers_counter)
             return target._handlers_counter
@@ -96,19 +96,19 @@ var crudproxycell = function(initial_data)
         on_update: function()
         {
             var key, priority, fn
-            switch(arguments.length)
+            switch(typeof arguments[0])
             {
-                case 1:
+                case "function":
                     fn = arguments[0]
                     break
-                case 2:
-                    key = arguments[0]
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
                     fn = arguments[1]
                     break
                 default:
-                    priority = arguments[1]
                     key = arguments[0]
-                    fn = arguments[2]
+                    fn = arguments[1]
             }
             target._on("update", key, priority, fn, ++target._handlers_counter)
             return target._handlers_counter
@@ -116,39 +116,39 @@ var crudproxycell = function(initial_data)
         on_delete: function()
         {
             var key, priority, fn
-            switch(arguments.length)
+            switch(typeof arguments[0])
             {
-                case 1:
+                case "function":
                     fn = arguments[0]
                     break
-                case 2:
-                    key = arguments[0]
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
                     fn = arguments[1]
                     break
                 default:
-                    priority = arguments[1]
                     key = arguments[0]
-                    fn = arguments[2]
+                    fn = arguments[1]
             }
             target._on("delete", key, priority, fn, ++target._handlers_counter)
             return target._handlers_counter
         },
         on_change: function()
         {
-            var key, priority, fn, handler_descriptor
-            switch(arguments.length)
+            var key, priority, fn
+            switch(typeof arguments[0])
             {
-                case 1:
+                case "function":
                     fn = arguments[0]
                     break
-                case 2:
-                    key = arguments[0]
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
                     fn = arguments[1]
                     break
                 default:
-                    priority = arguments[1]
                     key = arguments[0]
-                    fn = arguments[2]
+                    fn = arguments[1]
             }
             handler_descriptor = ++target._handlers_counter
             target._on("insert", key, priority, fn, handler_descriptor)
