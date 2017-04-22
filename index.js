@@ -72,6 +72,13 @@ var crudproxycell = function(initial_data)
         {
             target.$[++target._max_numeric_key] = item
         },
+        pop: function()
+        {
+            var last_key = this._keys[this._keys.length - 1]
+            var value = target.$[last_key]
+            delete target.$[last_key]
+            return value
+        },
         on_insert: function()
         {
             var key, priority, fn

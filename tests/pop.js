@@ -1,13 +1,13 @@
 var crudproxycell = require('../index.js')
-describe("Length",function()
+describe("Pop() function",function()
 {
-    it("exists",function()
+    it("works",function()
     {
         var cell = new crudproxycell()
-        var i
         cell.$test = "TEST"
         cell.push("FIRST")
         cell.$2 = "SECOND"
-        expect(cell.length).toBe(3)
+        expect(cell.pop()).toBe("SECOND")
+        expect(cell.$2).toBeUndefined()
     })
 })
