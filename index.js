@@ -2,8 +2,7 @@ var proxy_handler =
 {
     ownKeys: function(target)
     {
-        var data_keys = Object.keys(target._data).map(function(item){ return "$" + item })
-        return data_keys.concat(Object.keys(target))
+        return target._keys.map(function(key){return "$" + key}).concat(Object.keys(target))
     },
     getOwnPropertyDescriptor: function(target, property_name)
     {
@@ -29,12 +28,12 @@ var proxy_handler =
     {
         switch(true)
         {
+            case property_name === "length":
+                return target._keys.length
             case property_name === "$":
                 return target.$
-                break
             case typeof property_name == "string" && property_name.charAt(0) == "$":
                 return target.$[property_name.substr(1)]
-                break
             default:
                 return target[property_name]
         }
@@ -283,6 +282,7 @@ var crudproxycell = function(initial_data)
             }
             return result
         },
+        _keys: [],
         _data: {},
         _max_numeric_key: -1,
         _handlers_counter: 0,
@@ -298,7 +298,7 @@ var crudproxycell = function(initial_data)
     {
         ownKeys: function(target)
         {
-            return Object.getOwnPropertyNames(target._data)
+            return target._keys
         },
         getOwnPropertyDescriptor: function(target, name)
         {
@@ -324,7 +324,7 @@ var crudproxycell = function(initial_data)
                 old_value: target._data[property_name],
             }
             // Setting (changing) a property generates events.
-            if(typeof target._data[property_name] === "undefined")
+            if(typeof target._data[property_name] === "undefined" && typeof value != "undefined")
             {
                 event.name = "insert"
                 if(target._trigger(event).allowed === true)
@@ -337,6 +337,7 @@ var crudproxycell = function(initial_data)
                             target._max_numeric_key = property_name_parsed
                         }
                     }
+                    target._keys.push(property_name)
                     target._data[property_name] = event.new_value
                 }
             }
@@ -345,6 +346,10 @@ var crudproxycell = function(initial_data)
                 event.name = (typeof value === "undefined") ? "delete" : "update"
                 if(target._trigger(event).allowed === true)
                 {
+                    if(event.name == "delete" && typeof event.new_value == "undefined")
+                    {
+                        target._keys.splice(target._keys.indexOf(property_name),1)
+                    }
                     target._data[property_name] = event.new_value
                 }
             }
@@ -371,6 +376,7 @@ var crudproxycell = function(initial_data)
     {
         for(key in initial_data)
         {
+            target._keys.push(key)
             target._data[key] = initial_data[key]
         }
     }

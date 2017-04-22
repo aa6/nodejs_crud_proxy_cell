@@ -4,6 +4,7 @@ describe("Cycle dependencies",function()
     it("must have a way to be resolved",function()
     {
         var dates = new crudproxycell()
+        
         dates.on_change("date1",function(event)
         {
             if(event.new_value.value)

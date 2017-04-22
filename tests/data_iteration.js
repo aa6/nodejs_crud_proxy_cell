@@ -28,15 +28,15 @@ describe("Data iteration",function()
         })
         cell.$three = "THREE"
 
-        var for_in_keys = []
+        var for_in_order = []
         for(key in cell)
         {
-            for_in_keys.push(key)
+            for_in_order.push(key)
         }
 
-        expect(for_in_keys.indexOf("$one")).toBe(0)
-        expect(for_in_keys.indexOf("$two")).toBe(1)
-        expect(for_in_keys.indexOf("$three")).toBe(2)
+        expect(for_in_order.indexOf("$one")).toBe(0)
+        expect(for_in_order.indexOf("$two")).toBe(1)
+        expect(for_in_order.indexOf("$three")).toBe(2)
 
         expect(Object.keys(cell).indexOf("$one")).toBe(0)
         expect(Object.keys(cell).indexOf("$two")).toBe(1)
