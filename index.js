@@ -273,6 +273,27 @@ var crudproxycell = function(initial_data)
                     break
             }
         },
+        ksort: function(fn)
+        {
+            this._keys.sort(fn)
+        },
+        sort: function(fn)
+        {
+            if(fn == null)
+            {
+                fn = function(a,b) 
+                {
+                    a = a.toString()
+                    b = b.toString()
+                    return (a > b) ? 1 : (a < b ? -1 : 0)
+                }
+            }
+            var that = this
+            this._keys.sort(function(a,b)
+            {
+                return fn(that.$[a],that.$[b])
+            })
+        },
         toObject: function()
         {
             var result = {}
