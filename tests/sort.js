@@ -24,7 +24,7 @@ describe("Sort functions",function()
         expect(sorted).toEqual([ [ '2', 'TWO' ], [ '4', 'FOUR' ], [ '5', 'FIVE' ] ])
     })
 
-    fit("sort",function()
+    it("sort",function()
     {
         var cell = new crudproxycell()
         cell.$4 = "FOUR"
