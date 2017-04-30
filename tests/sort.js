@@ -72,4 +72,5 @@ describe("Sort functions",function()
         expect(unsorted).toEqual([ [ '4', 'FOUR' ], [ '2', 'TWO' ], [ '5', 'FIVE' ] ])
         expect(sorted).toEqual([ [ '2', 'TWO' ], [ '4', 'FOUR' ], [ '5', 'FIVE' ] ])
     })
+
 })
