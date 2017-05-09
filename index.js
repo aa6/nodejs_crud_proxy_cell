@@ -396,6 +396,7 @@ var crudproxycell = function(initial_data)
             if(target._trigger(event).allowed === true)
             {
                 delete target._data[property_name]
+                target._keys.splice(target._keys.indexOf(property_name),1)
             }
         },
     }
