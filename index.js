@@ -339,6 +339,17 @@ var crudproxycell = function(initial_data)
         },
         get: function(target, property_name, receiver)
         {
+            if(property_name === Symbol.iterator)
+            {
+                var i = 0
+                return function*() 
+                {
+                    while(i < target._keys.length)
+                    {
+                        yield target._data[target._keys[i++]]
+                    }
+                }
+            }
             return target._data[property_name]
         },
         set: function(target, property_name, value, receiver)
