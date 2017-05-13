@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Key specific CRUD events",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("should react on change",function()
     {

@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Crud proxy cell constructor",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("creates a copy of initial data to prevent accidental data manipulating through the object",function()
     {

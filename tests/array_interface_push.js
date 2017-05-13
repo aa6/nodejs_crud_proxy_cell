@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Array interface",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("items can be pushed with .push()",function()
     {

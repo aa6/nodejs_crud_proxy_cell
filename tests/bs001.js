@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Bug 001",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("is a lie",function()
     {

@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe(".toObject()",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("calls itself recursively on other crudproxycell instances",function()
     {

@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("CRUD events",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("should prevent change",function()
     {
@@ -8,7 +8,7 @@ describe("CRUD events",function()
             b:"bbb",
         })
         var events_handled = []
-        cell.on_change(function(event)
+        cell.before_change(function(event)
         {
             expect(event.target).toBe(cell)
             events_handled.push(event.name)
@@ -33,7 +33,7 @@ describe("CRUD events",function()
             b:"bbb",
         })
         var events_handled = []
-        cell.on_insert(function(event)
+        cell.before_insert(function(event)
         {
             expect(event.target).toBe(cell)
             events_handled.push(event.name)
@@ -58,7 +58,7 @@ describe("CRUD events",function()
             b:"bbb",
         })
         var events_handled = []
-        cell.on_update(function(event)
+        cell.before_update(function(event)
         {
             expect(event.target).toBe(cell)
             events_handled.push(event.name)
@@ -83,7 +83,7 @@ describe("CRUD events",function()
             b:"bbb",
         })
         var events_handled = []
-        cell.on_delete(function(event)
+        cell.before_delete(function(event)
         {
             expect(event.target).toBe(cell)
             events_handled.push(event.name)

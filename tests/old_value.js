@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Old values",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("are accessible in handlers",function()
     {

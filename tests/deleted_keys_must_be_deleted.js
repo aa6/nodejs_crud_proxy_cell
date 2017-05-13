@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Deleted keys",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("must be deleted",function()
     {

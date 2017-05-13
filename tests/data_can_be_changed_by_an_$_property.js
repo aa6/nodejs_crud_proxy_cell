@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Crud proxy data",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("can change value by $ symbol",function()
     {

@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("TypeError: cell.$ is not iterable",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("is a lie",function()
     {

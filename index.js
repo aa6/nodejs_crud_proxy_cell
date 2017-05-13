@@ -81,7 +81,7 @@ var crudproxycell = function(initial_data)
         },
         on_insert: function()
         {
-            var key, priority, fn
+            var key, priority, preventive, fn
             switch(typeof arguments[0])
             {
                 case "function":
@@ -90,18 +90,19 @@ var crudproxycell = function(initial_data)
                 case "object":
                     key = arguments[0].key
                     priority = arguments[0].priority
+                    preventive = arguments[0].preventive
                     fn = arguments[1]
                     break
                 default:
                     key = arguments[0]
                     fn = arguments[1]
             }
-            target._on("insert", key, priority, fn, ++target._handlers_counter)
+            target._on("insert", key, priority, preventive, fn, ++target._handlers_counter)
             return target._handlers_counter
         },
         on_update: function()
         {
-            var key, priority, fn
+            var key, priority, preventive, fn
             switch(typeof arguments[0])
             {
                 case "function":
@@ -110,18 +111,64 @@ var crudproxycell = function(initial_data)
                 case "object":
                     key = arguments[0].key
                     priority = arguments[0].priority
+                    preventive = arguments[0].preventive
                     fn = arguments[1]
                     break
                 default:
                     key = arguments[0]
                     fn = arguments[1]
             }
-            target._on("update", key, priority, fn, ++target._handlers_counter)
+            target._on("update", key, priority, preventive, fn, ++target._handlers_counter)
             return target._handlers_counter
         },
         on_delete: function()
         {
-            var key, priority, fn
+            var key, priority, preventive, fn
+            switch(typeof arguments[0])
+            {
+                case "function":
+                    fn = arguments[0]
+                    break
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
+                    preventive = arguments[0].preventive
+                    fn = arguments[1]
+                    break
+                default:
+                    key = arguments[0]
+                    fn = arguments[1]
+            }
+            target._on("delete", key, priority, preventive, fn, ++target._handlers_counter)
+            return target._handlers_counter
+        },
+        on_change: function()
+        {
+            var key, priority, preventive, fn
+            switch(typeof arguments[0])
+            {
+                case "function":
+                    fn = arguments[0]
+                    break
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
+                    preventive = arguments[0].preventive
+                    fn = arguments[1]
+                    break
+                default:
+                    key = arguments[0]
+                    fn = arguments[1]
+            }
+            handler_descriptor = ++target._handlers_counter
+            target._on("insert", key, priority, preventive, fn, handler_descriptor)
+            target._on("update", key, priority, preventive, fn, handler_descriptor)
+            target._on("delete", key, priority, preventive, fn, handler_descriptor)
+            return handler_descriptor
+        },
+        before_insert: function()
+        {
+            var key, priority, preventive = true, fn
             switch(typeof arguments[0])
             {
                 case "function":
@@ -136,12 +183,52 @@ var crudproxycell = function(initial_data)
                     key = arguments[0]
                     fn = arguments[1]
             }
-            target._on("delete", key, priority, fn, ++target._handlers_counter)
+            target._on("insert", key, priority, preventive, fn, ++target._handlers_counter)
             return target._handlers_counter
         },
-        on_change: function()
+        before_update: function()
         {
-            var key, priority, fn
+            var key, priority, preventive = true, fn
+            switch(typeof arguments[0])
+            {
+                case "function":
+                    fn = arguments[0]
+                    break
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
+                    fn = arguments[1]
+                    break
+                default:
+                    key = arguments[0]
+                    fn = arguments[1]
+            }
+            target._on("update", key, priority, preventive, fn, ++target._handlers_counter)
+            return target._handlers_counter
+        },
+        before_delete: function()
+        {
+            var key, priority, preventive = true, fn
+            switch(typeof arguments[0])
+            {
+                case "function":
+                    fn = arguments[0]
+                    break
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
+                    fn = arguments[1]
+                    break
+                default:
+                    key = arguments[0]
+                    fn = arguments[1]
+            }
+            target._on("delete", key, priority, preventive, fn, ++target._handlers_counter)
+            return target._handlers_counter
+        },
+        before_change: function()
+        {
+            var key, priority, preventive = true, fn
             switch(typeof arguments[0])
             {
                 case "function":
@@ -157,12 +244,95 @@ var crudproxycell = function(initial_data)
                     fn = arguments[1]
             }
             handler_descriptor = ++target._handlers_counter
-            target._on("insert", key, priority, fn, handler_descriptor)
-            target._on("update", key, priority, fn, handler_descriptor)
-            target._on("delete", key, priority, fn, handler_descriptor)
+            target._on("insert", key, priority, preventive, fn, handler_descriptor)
+            target._on("update", key, priority, preventive, fn, handler_descriptor)
+            target._on("delete", key, priority, preventive, fn, handler_descriptor)
             return handler_descriptor
         },
-        _trigger: function(event)
+        after_insert: function()
+        {
+            var key, priority, preventive = false, fn
+            switch(typeof arguments[0])
+            {
+                case "function":
+                    fn = arguments[0]
+                    break
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
+                    fn = arguments[1]
+                    break
+                default:
+                    key = arguments[0]
+                    fn = arguments[1]
+            }
+            target._on("insert", key, priority, preventive, fn, ++target._handlers_counter)
+            return target._handlers_counter
+        },
+        after_update: function()
+        {
+            var key, priority, preventive = false, fn
+            switch(typeof arguments[0])
+            {
+                case "function":
+                    fn = arguments[0]
+                    break
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
+                    fn = arguments[1]
+                    break
+                default:
+                    key = arguments[0]
+                    fn = arguments[1]
+            }
+            target._on("update", key, priority, preventive, fn, ++target._handlers_counter)
+            return target._handlers_counter
+        },
+        after_delete: function()
+        {
+            var key, priority, preventive = false, fn
+            switch(typeof arguments[0])
+            {
+                case "function":
+                    fn = arguments[0]
+                    break
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
+                    fn = arguments[1]
+                    break
+                default:
+                    key = arguments[0]
+                    fn = arguments[1]
+            }
+            target._on("delete", key, priority, preventive, fn, ++target._handlers_counter)
+            return target._handlers_counter
+        },
+        after_change: function()
+        {
+            var key, priority, preventive = false, fn
+            switch(typeof arguments[0])
+            {
+                case "function":
+                    fn = arguments[0]
+                    break
+                case "object":
+                    key = arguments[0].key
+                    priority = arguments[0].priority
+                    fn = arguments[1]
+                    break
+                default:
+                    key = arguments[0]
+                    fn = arguments[1]
+            }
+            handler_descriptor = ++target._handlers_counter
+            target._on("insert", key, priority, preventive, fn, handler_descriptor)
+            target._on("update", key, priority, preventive, fn, handler_descriptor)
+            target._on("delete", key, priority, preventive, fn, handler_descriptor)
+            return handler_descriptor
+        },
+        _trigger: function(event,preventive)
         {
             var priority, fns
             var order = [].concat(target._event_handlers[event.name].common.order)
@@ -172,6 +342,7 @@ var crudproxycell = function(initial_data)
             }
             order = order.sort().filter(function(el,key){ return order.indexOf(el) === key }) // unique and sorted
             result = { allowed: true }
+            event.preventive = preventive
             for(order_index in order)
             {
                 priority = order[order_index]
@@ -185,18 +356,35 @@ var crudproxycell = function(initial_data)
                 {
                     fns = fns.concat(target._event_handlers[event.name].key_specific[event.key].fns[priority])
                 }
-                for(fn_index in fns)
+                if(preventive)
                 {
-                    result.allowed = (fns[fn_index].fn(event) != false)
-                    if(!result.allowed)
+                    for(fn_index in fns)
                     {
-                        return result
+                        if(fns[fn_index].preventive)
+                        {
+
+                            result.allowed = (fns[fn_index].fn(event) != false)
+                            if(!result.allowed)
+                            {
+                                return result
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for(fn_index in fns)
+                    {
+                        if(fns[fn_index].preventive !== true)
+                        {
+                            fns[fn_index].fn(event)
+                        }
                     }
                 }
             }
             return result
         },
-        _on: function(event_name, property_name, priority, handler, handler_descriptor)
+        _on: function(event_name, property_name, priority, preventive, handler, handler_descriptor)
         {
             if(typeof priority != "number")
             {
@@ -213,7 +401,8 @@ var crudproxycell = function(initial_data)
                 target._event_handlers[event_name].common.fns[priority].push(
                 { 
                     hd: handler_descriptor, 
-                    fn: handler 
+                    fn: handler,
+                    preventive: preventive,
                 })
             }
             else
@@ -231,7 +420,8 @@ var crudproxycell = function(initial_data)
                 target._event_handlers[event_name].key_specific[property_name].fns[priority].push(
                 { 
                     hd: handler_descriptor, 
-                    fn: handler 
+                    fn: handler,
+                    preventive: preventive,
                 })
             }
         },
@@ -366,7 +556,7 @@ var crudproxycell = function(initial_data)
             if(typeof target._data[property_name] === "undefined" && typeof value != "undefined")
             {
                 event.name = "insert"
-                if(target._trigger(event).allowed === true)
+                if(target._trigger(event,true).allowed === true)
                 {
                     if(is_valid_numeric_key(property_name))
                     {
@@ -378,18 +568,20 @@ var crudproxycell = function(initial_data)
                     }
                     target._keys.push(property_name)
                     target._data[property_name] = event.new_value
+                    target._trigger(event)
                 }
             }
             else
             {
                 event.name = (typeof value === "undefined") ? "delete" : "update"
-                if(target._trigger(event).allowed === true)
+                if(target._trigger(event,true).allowed === true)
                 {
                     if(event.name == "delete" && typeof event.new_value == "undefined")
                     {
                         target._keys.splice(target._keys.indexOf(property_name),1)
                     }
                     target._data[property_name] = event.new_value
+                    target._trigger(event)
                 }
             }
         },
@@ -404,10 +596,11 @@ var crudproxycell = function(initial_data)
                 new_value: void(0),
                 old_value: target._data[property_name],
             }
-            if(target._trigger(event).allowed === true)
+            if(target._trigger(event,true).allowed === true)
             {
                 delete target._data[property_name]
                 target._keys.splice(target._keys.indexOf(property_name),1)
+                target._trigger(event)
             }
         },
     }

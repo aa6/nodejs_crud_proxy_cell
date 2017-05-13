@@ -1,11 +1,11 @@
 var crudproxycell = require('../index.js')
-describe("Cycle dependencies",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("must have a way to be resolved",function()
     {
         var dates = new crudproxycell()
         
-        dates.on_change("date1",function(event)
+        dates.before_change("date1",function(event)
         {
             if(event.new_value.value)
             {
@@ -17,7 +17,7 @@ describe("Cycle dependencies",function()
             }
         })
 
-        dates.on_change("date2",function(event)
+        dates.before_change("date2",function(event)
         {
             if(event.new_value.value)
             {

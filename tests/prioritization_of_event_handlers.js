@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Event handlers priorities",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("can be specified",function()
     {
@@ -46,15 +46,15 @@ describe("Event handlers priorities",function()
     {
         var cell = new crudproxycell()
         var execution_order = []
-        cell.on_change({key:"b",priority:150},function()
+        cell.before_change({key:"b",priority:150},function()
         {
             execution_order.push(150)
         })
-        cell.on_change({key:"b",priority:-100},function()
+        cell.before_change({key:"b",priority:-100},function()
         {
             execution_order.push(-100)
         })
-        cell.on_change({key:"b"},function(event)
+        cell.before_change({key:"b"},function(event)
         {
             execution_order.push(0)
             if(event.new_value == "stop") { return false }

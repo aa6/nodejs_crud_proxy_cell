@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Unconfigurable properties",function() // JUST IN CASE YOU KNOW
+describe(__filename.slice(__dirname.length + 1) + ":",function() // JUST IN CASE YOU KNOW
 {
     it("must be configurable",function()
     {

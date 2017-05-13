@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe(".toObject()",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("returns data as copy to prevent accidental data manipulating through the object",function()
     {

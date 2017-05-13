@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Data iteration",function()
+describe("(" + __filename.slice(__dirname.length + 1) + ")",function()
 {
     it("items can be iterated with $ property",function()
     {

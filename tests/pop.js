@@ -1,5 +1,5 @@
 var crudproxycell = require('../index.js')
-describe("Pop() function",function()
+describe(__filename.slice(__dirname.length + 1) + ":",function()
 {
     it("works",function()
     {
