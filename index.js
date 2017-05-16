@@ -341,7 +341,7 @@ var crudproxycell = function(initial_data)
                 order = order.concat(target._event_handlers[event.name].key_specific[event.key].order)
             }
             order = order.sort().filter(function(el,key){ return order.indexOf(el) === key }) // unique and sorted
-            result = { allowed: true }
+            var result = { allowed: true }
             event.preventive = preventive
             for(order_index in order)
             {
@@ -544,7 +544,6 @@ var crudproxycell = function(initial_data)
         },
         set: function(target, property_name, value, receiver)
         {
-            var operation_permitted = true
             var event = 
             {
                 key: property_name,
@@ -587,7 +586,6 @@ var crudproxycell = function(initial_data)
         },
         deleteProperty: function(target, property_name)
         {
-            var operation_permitted = true
             var event = 
             {
                 key: property_name,
